@@ -11,6 +11,9 @@ i = 0
 
 no_of_links = int(input("Enter number of links to be pasted: "))
 file_name = input('Enter file name: ')
+print("After copying first link press Enter, then copy rest of the links. ")
+print("Links will be pasted in the above file automatically")
+input()
 
 while i < no_of_links:
     if paste != pyperclip.paste():
