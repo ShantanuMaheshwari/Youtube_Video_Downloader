@@ -1,73 +1,84 @@
 #!/usr/bin/python3
 """This script uses youtube-dl to download youtube video
 Till now it only supports single videos instead of playlist"""
+"""To activate venv go inside bin directory and type 'source ./activate'"""
+
+# TODO: extract video title from webpage title using beautifulsoup
+# TODO: copy video url directly to file using the technique learnt in webpage scraping
+#  and https://automatetheboringstuff.com/
 
 import os
+import time
 
 
 class YoutubeVideoDownloader:
 
     def __init__(self):
-        self.mode = input("Enter 1 for single video mode or 2 for batch mode: ")
+        self.mode = input("Enter 1 for Single video mode or 2 for Batch mode: ")
         self.youtube_video_url = ''
         self.youtube_video_title = ''
-        self.video_format = ''
-        self.audio_format = ''
+        self.video_format = '0'
+        self.audio_format = '0'
+        # flag_1 returned from command displaying available formats
+        # On success execution of os.system 0 is returned
+        self.flag_1 = 0
+        # flag_2 returned after downloading video
+        self.flag_2 = 0
         if self.mode == '1':
             self.download_video()
         elif self.mode == '2':
-            youtube_file = input("Enter file name containing links title and formats: ")
+            youtube_file = input("Enter file name containing links and title: ")
             file = open(youtube_file, 'r')
-            file_data = file.read().split('\n')[:-1]
+            file_data = file.read().split('\n')
+            file.close()
             line_number = 0
             while line_number < len(file_data):
                 self.set_youtube_video_url(file_data[line_number])
                 line_number += 1
                 self.set_youtube_video_title(file_data[line_number])
                 line_number += 1
-                self.set_video_audio_quality(file_data[line_number])
-                line_number += 1
                 self.download_video()
+                if self.flag_2 == 0:
+                    # Deleting url and title of videos downloaded
+                    time.sleep(10)
+                    del file_data[line_number-2:line_number]
+                    line_number -= 2
+                file = open(youtube_file, 'w')
+                file.write('\n'.join(file_data))
+                file.close()
 
     def set_youtube_video_url(self, url):
-        if self.mode == '1':
-            self.youtube_video_url = " " + input("Enter youtube video url: ").split("&list")[0]
-        elif self.mode == '2':
-            self.youtube_video_url = " " + url.split("&list")[0]
+        self.youtube_video_url = " " + url.split("&list")[0]
 
     def set_youtube_video_title(self, title):
-        if self.mode == '1':
-            self.youtube_video_title = "\"" + input("Enter video title: ") + ".%(ext)s\""
-        elif self.mode == '2':
-            self.youtube_video_title = "\"" + title + ".%(ext)s\""
-        return self.youtube_video_title
+        self.youtube_video_title = "\"" + title + ".%(ext)s\""
 
     def set_video_audio_quality(self, quality):
-        if self.mode == '1':
-            print("Enter video and audio formats(Press 0 for best quality): ")
-            self.video_format, self.audio_format = input().split()
-        if self.mode == '2':
-            self.video_format, self.audio_format = quality.split()
-        return self.video_format, self.audio_format
+        self.video_format, self.audio_format = quality.split()
 
     def download_video(self):
         # Downloading single videos instead of playlist so adding .split("&list")
         if self.mode == '1':
-            self.set_youtube_video_url(0)
-            self.set_youtube_video_title(0)
+            self.set_youtube_video_url(input("Enter youtube video url: "))
+            self.set_youtube_video_title(input("Enter video title: "))
             print("---------------------Available Formats------------------------ ")
             # Terminal command for displaying available audio and video formats
-            os.system("youtube-dl -F" + self.youtube_video_url)
-            self.set_video_audio_quality(0)
+            self.flag_1 = os.system("youtube-dl -F" + self.youtube_video_url)
+            if self.flag_1 != 0:
+                print("Invalid youtube video url.")
+                exit()
+            print("Enter video and audio formats(Press 0 for best quality): ", end='')
+            self.set_video_audio_quality(input())
         print(self.youtube_video_title)
         if self.video_format == '0':
             self.video_format = "bestvideo"
         if self.audio_format == '0':
             self.audio_format = "bestaudio"
         # Terminal command for downloading videos
-        os.system(''.join(["youtube-dl -o ", self.youtube_video_title,
-                           " -f ", self.video_format, "+", self.audio_format,
-                           self.youtube_video_url]))
+        self.flag_2 = os.system(''.join(["youtube-dl -o ", self.youtube_video_title,
+                                         " -f ", self.video_format, "+", self.audio_format,
+                                         self.youtube_video_url]))
+        print("Status of cmd: ", self.flag_2, '\n')
 
 
 if __name__ == '__main__':
