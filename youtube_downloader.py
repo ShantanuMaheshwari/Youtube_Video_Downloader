@@ -11,10 +11,6 @@ Till now it only supports single videos instead of playlist"""
 """To activate venv go inside bin directory and type 'source ./activate'"""
 
 
-# TODO: copy video url directly to file using the technique learnt in webpage scraping
-#  and https://automatetheboringstuff.com/
-
-
 class YoutubeVideoDownloader:
 
     def __init__(self):
@@ -39,7 +35,6 @@ class YoutubeVideoDownloader:
             while line_number < len(file_data):
                 self.set_youtube_video_url(file_data[line_number])
                 line_number += 1
-                # self.set_youtube_video_title(file_data[line_number])
                 self.set_youtube_video_title()
                 line_number += 1
                 self.download_video()
@@ -56,7 +51,7 @@ class YoutubeVideoDownloader:
         self.youtube_video_url = " " + url.split("&list")[0]
 
     def set_youtube_video_title(self):
-        # self.youtube_video_title = "\"" + title + ".%(ext)s\""
+        # Using web scraping to find title of the video
         r = requests.get(self.youtube_video_url)
         soup = BeautifulSoup(r.content, 'html5lib')
         title = soup.find('title')
@@ -70,7 +65,6 @@ class YoutubeVideoDownloader:
         # Downloading single videos instead of playlist so adding .split("&list")
         if self.mode == '1':
             self.set_youtube_video_url(input("Enter youtube video url: "))
-            # self.set_youtube_video_title(input("Enter video title: "))
             self.set_youtube_video_title()
             print("---------------------Available Formats------------------------ ")
             # Terminal command for displaying available audio and video formats
