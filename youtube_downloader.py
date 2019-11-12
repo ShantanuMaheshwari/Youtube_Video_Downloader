@@ -1,14 +1,18 @@
-#!/usr/bin/python3
+#!/home/shantanu/PythonProjects/Youtube_Downloader/venv/bin/python3
+
+import os
+import time
+import requests
+from bs4 import BeautifulSoup
+
+
 """This script uses youtube-dl to download youtube video
 Till now it only supports single videos instead of playlist"""
 """To activate venv go inside bin directory and type 'source ./activate'"""
 
-# TODO: extract video title from webpage title using beautifulsoup
+
 # TODO: copy video url directly to file using the technique learnt in webpage scraping
 #  and https://automatetheboringstuff.com/
-
-import os
-import time
 
 
 class YoutubeVideoDownloader:
@@ -35,13 +39,14 @@ class YoutubeVideoDownloader:
             while line_number < len(file_data):
                 self.set_youtube_video_url(file_data[line_number])
                 line_number += 1
-                self.set_youtube_video_title(file_data[line_number])
+                # self.set_youtube_video_title(file_data[line_number])
+                self.set_youtube_video_title()
                 line_number += 1
                 self.download_video()
                 if self.flag_2 == 0:
                     # Deleting url and title of videos downloaded
-                    time.sleep(10)
-                    del file_data[line_number-2:line_number]
+                    # time.sleep(5)
+                    del file_data[line_number - 2:line_number]
                     line_number -= 2
                 file = open(youtube_file, 'w')
                 file.write('\n'.join(file_data))
@@ -50,8 +55,13 @@ class YoutubeVideoDownloader:
     def set_youtube_video_url(self, url):
         self.youtube_video_url = " " + url.split("&list")[0]
 
-    def set_youtube_video_title(self, title):
-        self.youtube_video_title = "\"" + title + ".%(ext)s\""
+    def set_youtube_video_title(self):
+        # self.youtube_video_title = "\"" + title + ".%(ext)s\""
+        r = requests.get(self.youtube_video_url)
+        soup = BeautifulSoup(r.content, 'html5lib')
+        title = soup.find('title')
+        self.youtube_video_title = "\"" + title.get_text() + ".%(ext)s\""
+        print(self.youtube_video_title)
 
     def set_video_audio_quality(self, quality):
         self.video_format, self.audio_format = quality.split()
@@ -60,7 +70,8 @@ class YoutubeVideoDownloader:
         # Downloading single videos instead of playlist so adding .split("&list")
         if self.mode == '1':
             self.set_youtube_video_url(input("Enter youtube video url: "))
-            self.set_youtube_video_title(input("Enter video title: "))
+            # self.set_youtube_video_title(input("Enter video title: "))
+            self.set_youtube_video_title()
             print("---------------------Available Formats------------------------ ")
             # Terminal command for displaying available audio and video formats
             self.flag_1 = os.system("youtube-dl -F" + self.youtube_video_url)
